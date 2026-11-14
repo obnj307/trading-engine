@@ -1,0 +1,38 @@
+
+name: POC Backtest V1
+
+on:
+  workflow_dispatch:
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run POC Backtest
+        run: |
+          python backtest.py data/BTCUSDT_3m.csv \
+            --fee-bps 6 \
+            --slippage-bps 2 \
+            --sl-atr 1 \
+            --tp-atr 2 \
+            --hold-bars 20 \
+            --out results
+
+      - name: Upload results
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: poc-backtest-results
+          path: results/
