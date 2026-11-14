@@ -1,4 +1,3 @@
-
 name: POC Backtest V1
 
 on:
@@ -7,32 +6,28 @@ on:
 jobs:
   backtest:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Python
+      - name: Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run POC Backtest
+          python-version: '3.11'
+      - name: Dependencies
         run: |
-          python backtest.py data/BTCUSDT_3m.csv \
-            --fee-bps 6 \
-            --slippage-bps 2 \
-            --sl-atr 1 \
-            --tp-atr 2 \
-            --hold-bars 20 \
-            --out results
-
-      - name: Upload results
-        if: success()
+          python -m pip install -r requirements.txt
+          python -m pip install requests
+      - name: Download Bitget candles
+        run: python download_data.py
+      - name: Run backtest
+        run: |
+          python backtest.py data/BTCUSDT_3m.csv --fee-bps 6 --slippage-bps 2 --sl-atr 1 --tp-atr 2 --hold-bars 20 --out results
+      - name: Upload report and input data
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: poc-backtest-results
-          path: results/
+          path: |
+            results/
+            data/BTCUSDT_3m.csv
+          if-no-files-found: warn
